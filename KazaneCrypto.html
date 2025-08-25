@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KazaneCrypto</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+        
+        .description {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .file-section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .settings-section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .file-drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-drop-area:hover {
+            border-color: var(--accent-color);
+            background-color: rgba(79, 195, 247, 0.05);
+        }
+        
+        .file-drop-area.highlight {
+            border-color: var(--primary-color);
+            background-color: rgba(74, 111, 165, 0.1);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-encrypt {
+            background-color: var(--success-color);
+        }
+        
+        .btn-encrypt:hover {
+            background-color: #218838;
+        }
+        
+        .btn-decrypt {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-decrypt:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        select, input[type="text"], input[type="password"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .algorithm-options {
+            display: none;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+        
+        /* 加载动画 */
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 选项卡样式 */
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 15px 0;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Kazane Crypto</h1>
+            <p class="description">支持AES、RSA、3DES、XOR、Caesar等算法的在线加解密</p>
+        </header>
+        
+        <div class="main-content">
+            <section class="file-section">
+                <h2>文件操作</h2>
+                
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="openTab(event, 'file-tab')">文件加解密</button>
+                        <button class="tab-btn" onclick="openTab(event, 'text-tab')">文本加解密</button>
+                    </div>
+                    
+                    <div id="file-tab" class="tab-content active">
+                        <div id="fileDropArea" class="file-drop-area">
+                            <p>拖放文件到此处或点击选择文件</p>
+                            <p><small>支持大文件处理 (最大 10GB)</small></p>
+                            <input type="file" id="fileInput" class="file-input">
+                            <button class="btn" onclick="document.getElementById('fileInput').click()">选择文件</button>
+                        </div>
+                        
+                        <div id="fileInfo" class="file-info">
+                            未选择文件
+                        </div>
+                        
+                        <div class="progress-container" id="progressContainer">
+                            <div class="progress-bar">
+                                <div class="progress" id="progressBar"></div>
+                            </div>
+                            <div class="status" id="statusText">准备中...</div>
+                        </div>
+                        
+                        <div class="loader" id="loader"></div>
+                        
+                        <div style="text-align: center;">
+                            <button id="encryptBtn" class="btn btn-encrypt" disabled>加密文件</button>
+                            <button id="decryptBtn" class="btn btn-decrypt" disabled>解密文件</button>
+                            <button id="resetBtn" class="btn btn-secondary" disabled>重置</button>
+                        </div>
+                        
+                        <div id="downloadContainer" style="text-align: center; margin-top: 20px;"></div>
+                    </div>
+                    
+                    <div id="text-tab" class="tab-content">
+                        <div class="form-group">
+                            <label for="textInput">输入文本:</label>
+                            <textarea id="textInput" rows="5" placeholder="输入要加密或解密的文本"></textarea>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <button id="encryptTextBtn" class="btn btn-encrypt">加密文本</button>
+                            <button id="decryptTextBtn" class="btn btn-decrypt">解密文本</button>
+                            <button id="clearTextBtn" class="btn btn-secondary">清空</button>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label for="textOutput">结果:</label>
+                            <textarea id="textOutput" rows="5" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="settings-section">
+                <h2>加解密设置</h2>
+                
+            <div class="form-group">
+                <label for="algorithm">加密算法:</label>
+                <select id="algorithm" class="algorithm-select">
+                        <option value="AES">AES (高级加密标准 - 对称加密，速度快安全性高，适合大数据)</option>
+                    </optgroup>
+                        <option value="RSA">RSA (非对称加密 - 用于密钥交换和数字签名，速度较慢)</option>
+                    </optgroup>
+                        <option value="3DES">3DES (三重数据加密 - 兼容旧系统，安全性低于AES算法)</option>
+                    </optgroup>    
+                        <option value="XOR">XOR (异或加密 - 简单快速，安全性低)</option>
+                    </optgroup>
+                    <option value="Caesar">Caesar (恺撒加密 [只对英文字母有效] - 简单快速，安全性低)</option>
+                    </optgroup>
+                </select>
+            </div>
+                
+                <div id="aesOptions" class="algorithm-options">
+                    <div class="form-group">
+                        <label for="aesKeySize">密钥长度:</label>
+                        <select id="aesKeySize">
+                            <option value="128">128位</option>
+                            <option value="192">192位</option>
+                            <option value="256" selected>256位</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="aesMode">加密模式:</label>
+                        <select id="aesMode">
+                            <option value="CBC" selected>CBC</option>
+                            <option value="GCM">GCM</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="rsaOptions" class="algorithm-options">
+                    <div class="form-group">
+                        <label for="rsaKeySize">密钥长度:</label>
+                        <select id="rsaKeySize">
+                            <option value="2048" selected>2048位</option>
+                            <option value="4096">4096位</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button id="generateRsaKeys" class="btn">生成RSA密钥对</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="rsaPublicKey">公钥:</label>
+                        <textarea id="rsaPublicKey" rows="3" placeholder="在此粘贴公钥"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="rsaPrivateKey">私钥:</label>
+                        <textarea id="rsaPrivateKey" rows="3" placeholder="在此粘贴私钥"></textarea>
+                    </div>
+                </div>
+                
+                <div id="desOptions" class="algorithm-options">
+                    <div class="form-group">
+                        <label for="desMode">加密模式:</label>
+                        <select id="desMode">
+                            <option value="CBC" selected>CBC</option>
+                            <option value="ECB">ECB</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="xorOptions" class="algorithm-options">
+                    <div class="form-group">
+                        <label for="xorKey">XOR密钥:</label>
+                        <input type="text" id="xorKey" placeholder="输入XOR加密密钥">
+                    </div>
+                </div>
+                
+                <div id="caesarOptions" class="algorithm-options">
+                <div class="form-group">
+                    <label for="caesarShift">位移量 (1-25):</label>
+                    <input type="number" id="caesarShift" min="1" max="25" value="3">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码/密钥:</label>
+                    <input type="password" id="password" placeholder="输入加密/解密密码">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码:</label>
+                    <input type="password" id="confirmPassword" placeholder="再次输入密码">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="showPassword"> 显示密码
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label for="outputFileName">输出文件名:</label>
+                    <input type="text" id="outputFileName" placeholder="自定义输出文件名(不含扩展名)">
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="saveSettings" class="btn">保存设置</button>
+                    <button id="resetSettings" class="btn btn-secondary">重置设置</button>
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>KazaneCrypto &copy; 2025 | 使用现代Web加密API，所有处理均在浏览器本地完成，文件不会上传到服务器 | By:美夜赤月</p>
+        </footer>
+    </div>
+
+    <script>
+        // 全局变量
+        let selectedFile = null;
+        let fileReader = new FileReader();
+        let cryptoKey = null;
+        let rsaKeyPair = null;
+        
+        // DOM元素
+        const fileDropArea = document.getElementById('fileDropArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const statusText = document.getElementById('statusText');
+        const loader = document.getElementById('loader');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const decryptBtn = document.getElementById('decryptBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const downloadContainer = document.getElementById('downloadContainer');
+        const algorithmSelect = document.getElementById('algorithm');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const showPasswordCheckbox = document.getElementById('showPassword');
+        const outputFileNameInput = document.getElementById('outputFileName');
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            updateAlgorithmOptions();
+            loadSettings();
+        });
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 文件拖放
+            fileDropArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                fileDropArea.classList.add('highlight');
+            });
+            
+            fileDropArea.addEventListener('dragleave', function() {
+                fileDropArea.classList.remove('highlight');
+            });
+            
+            fileDropArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                fileDropArea.classList.remove('highlight');
+                
+                if (e.dataTransfer.files.length) {
+                    handleFileSelection(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // 文件选择
+            fileInput.addEventListener('change', function() {
+                if (this.files.length) {
+                    handleFileSelection(this.files[0]);
+                }
+            });
+            
+            // 加密/解密按钮
+            encryptBtn.addEventListener('click', function() {
+                if (validateInputs()) {
+                    encryptFile();
+                }
+            });
+            
+            decryptBtn.addEventListener('click', function() {
+                if (validateInputs()) {
+                    decryptFile();
+                }
+            });
+            
+            resetBtn.addEventListener('click', resetFileSelection);
+            
+            // 算法选择变化
+            algorithmSelect.addEventListener('change', updateAlgorithmOptions);
+            
+            // 显示密码
+            showPasswordCheckbox.addEventListener('change', function() {
+                const type = this.checked ? 'text' : 'password';
+                passwordInput.type = type;
+                confirmPasswordInput.type = type;
+            });
+            
+            // 文本加解密按钮
+            document.getElementById('encryptTextBtn').addEventListener('click', encryptText);
+            document.getElementById('decryptTextBtn').addEventListener('click', decryptText);
+            document.getElementById('clearTextBtn').addEventListener('click', clearText);
+            
+            // RSA密钥生成
+            document.getElementById('generateRsaKeys').addEventListener('click', generateRsaKeyPair);
+            
+            // 设置按钮
+            document.getElementById('saveSettings').addEventListener('click', saveSettings);
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+        }
+        
+        // 处理文件选择
+        function handleFileSelection(file) {
+            // 显示加载指示器
+            if (file.size > 10 * 1024 * 1024) { // 大于10MB才显示加载
+                loader.style.display = 'block';
+                fileInfo.textContent = '正在处理文件...';
+            }
+            
+            // 使用setTimeout让UI有机会更新
+            setTimeout(async () => {
+                try {
+                    // 检查文件大小 (限制为10GB)
+                    if (file.size > 10 * 1024 * 1024 * 1024) {
+                        alert('文件太大，最大支持10GB的文件');
+                        return;
+                    }
+                    
+                    selectedFile = file;
+                    fileInfo.textContent = `已选择文件: ${file.name} (${formatFileSize(file.size)})`;
+                    
+                    encryptBtn.disabled = false;
+                    decryptBtn.disabled = false;
+                    resetBtn.disabled = false;
+                    
+                    // 自动设置输出文件名
+                    const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+                    outputFileNameInput.value = fileNameWithoutExt;
+                } finally {
+                    // 隐藏加载指示器
+                    loader.style.display = 'none';
+                }
+            }, 100);
+        }
+        
+        // 重置文件选择
+        function resetFileSelection() {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.textContent = '未选择文件';
+            progressContainer.style.display = 'none';
+            downloadContainer.innerHTML = '';
+            
+            encryptBtn.disabled = true;
+            decryptBtn.disabled = true;
+            resetBtn.disabled = true;
+        }
+        
+        // 加密文件
+        async function encryptFile() {
+            if (!selectedFile) return;
+            
+            const algorithm = algorithmSelect.value;
+            
+            try {
+                showProgress('正在加密...', 0);
+                
+                if (algorithm === 'RSA') {
+                    await encryptFileRsa();
+                } else if (algorithm === '3DES') {
+                    await encryptFile3DES();
+                } else if (algorithm === 'XOR') {
+                    await encryptFileXor();
+                } else {
+                    await encryptFileAes();
+                }
+                
+                showProgress('加密完成!', 100);
+            } catch (error) {
+                console.error('加密错误:', error);
+                showProgress('加密失败: ' + error.message, 0);
+            }
+        }
+        
+        // AES加密文件
+        async function encryptFileAes() {
+            const password = passwordInput.value;
+            const salt = window.crypto.getRandomValues(new Uint8Array(16));
+            const iv = window.crypto.getRandomValues(new Uint8Array(16));
+            const keySize = parseInt(document.getElementById('aesKeySize').value);
+            const mode = document.getElementById('aesMode').value;
+            
+            // 获取文件扩展名
+            const fileExt = getFileExtension(selectedFile.name);
+            const extEncoder = new TextEncoder();
+            const extData = extEncoder.encode(fileExt);
+            const extLength = new Uint8Array(2);
+            extLength[0] = extData.length >> 8;
+            extLength[1] = extData.length & 0xFF;
+            
+            // 从密码派生密钥
+            const keyMaterial = await getKeyMaterial(password);
+            const key = await deriveKey(keyMaterial, salt, 'AES', keySize, ['encrypt']);
+            
+            // 读取文件为ArrayBuffer
+            const fileData = await readFileAsArrayBuffer(selectedFile);
+            
+            // 加密数据
+            const encryptedData = await window.crypto.subtle.encrypt(
+                { 
+                    name: `AES-${mode}`,
+                    iv: iv 
+                },
+                key,
+                fileData
+            );
+            
+            // 创建输出文件 (格式: salt(16) + iv(16) + extLength(2) + extData + encryptedData)
+            const output = new Uint8Array(salt.length + iv.length + extLength.length + extData.length + encryptedData.byteLength);
+            let offset = 0;
+            output.set(salt, offset); offset += salt.length;
+            output.set(iv, offset); offset += iv.length;
+            output.set(extLength, offset); offset += extLength.length;
+            output.set(extData, offset); offset += extData.length;
+            output.set(new Uint8Array(encryptedData), offset);
+            
+            // 创建下载链接
+            createDownloadLink(output, true);
+        }
+        
+            // 3DES加密文件
+            async function encryptFile3DES() {
+                const password = passwordInput.value;
+                const salt = CryptoJS.lib.WordArray.random(8); // 8字节salt
+                const iv = CryptoJS.lib.WordArray.random(8); // 8字节IV
+                const mode = document.getElementById('desMode').value;
+                
+                // 获取文件扩展名
+                const fileExt = getFileExtension(selectedFile.name);
+                const extEncoder = new TextEncoder();
+                const extData = extEncoder.encode(fileExt);
+                const extLength = new Uint8Array(2);
+                extLength[0] = extData.length >> 8;
+                extLength[1] = extData.length & 0xFF;
+                
+                // 从密码派生密钥 (使用PBKDF2)
+                const key = CryptoJS.PBKDF2(password, salt, {
+                    keySize: 24 / 4, // 3DES需要24字节密钥
+                    iterations: 10000,
+                    hasher: CryptoJS.algo.SHA256
+                });
+                
+                // 读取文件
+                const fileData = await readFileAsArrayBuffer(selectedFile);
+                const fileDataWordArray = CryptoJS.lib.WordArray.create(fileData);
+                
+                // 加密配置
+                const cfg = {
+                    iv: mode === 'ECB' ? undefined : iv,
+                    mode: mode === 'ECB' ? CryptoJS.mode.ECB : CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                };
+                
+                // 执行3DES加密
+                const encrypted = CryptoJS.TripleDES.encrypt(fileDataWordArray, key, cfg);
+                
+                // 准备输出数据 (格式: salt + iv + extLength + extData + encryptedData)
+                const saltArray = new Uint8Array(salt.toString(CryptoJS.enc.Hex).match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const ivArray = mode === 'ECB' ? [] : new Uint8Array(iv.toString(CryptoJS.enc.Hex).match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const extDataArray = new Uint8Array(extData);
+                
+                // 将加密数据转换为Uint8Array
+                const encryptedWordArray = encrypted.ciphertext;
+                const encryptedArray = new Uint8Array(encryptedWordArray.words.length * 4);
+                for (let i = 0; i < encryptedWordArray.words.length; i++) {
+                    encryptedArray[i * 4] = (encryptedWordArray.words[i] >> 24) & 0xff;
+                    encryptedArray[i * 4 + 1] = (encryptedWordArray.words[i] >> 16) & 0xff;
+                    encryptedArray[i * 4 + 2] = (encryptedWordArray.words[i] >> 8) & 0xff;
+                    encryptedArray[i * 4 + 3] = encryptedWordArray.words[i] & 0xff;
+                }
+                // 裁剪到实际长度
+                const encryptedData = encryptedArray.slice(0, encryptedWordArray.sigBytes);
+                
+                // 组合所有数据
+                const output = new Uint8Array([
+                    ...saltArray,
+                    ...ivArray,
+                    ...extLength,
+                    ...extDataArray,
+                    ...encryptedData
+                ]);
+                
+                // 创建下载链接
+                createDownloadLink(output, true);
+            }
+        
+        // XOR加密文件
+        async function encryptFileXor() {
+            const key = document.getElementById('xorKey').value || passwordInput.value;
+            if (!key) {
+                throw new Error('请提供XOR加密密钥');
+            }
+            
+            // 获取文件扩展名
+            const fileExt = getFileExtension(selectedFile.name);
+            const extEncoder = new TextEncoder();
+            const extData = extEncoder.encode(fileExt);
+            const extLength = new Uint8Array(2);
+            extLength[0] = extData.length >> 8;
+            extLength[1] = extData.length & 0xFF;
+            
+            // 读取文件为ArrayBuffer
+            const fileData = await readFileAsArrayBuffer(selectedFile);
+            const fileArray = new Uint8Array(fileData);
+            
+            // 准备密钥字节数组
+            const keyEncoder = new TextEncoder();
+            const keyBytes = keyEncoder.encode(key);
+            if (keyBytes.length === 0) {
+                throw new Error('XOR密钥不能为空');
+            }
+            
+            // 执行XOR加密
+            const encryptedData = new Uint8Array(fileArray.length);
+            for (let i = 0; i < fileArray.length; i++) {
+                encryptedData[i] = fileArray[i] ^ keyBytes[i % keyBytes.length];
+            }
+            
+            // 创建输出文件 (格式: extLength(2) + extData + encryptedData)
+            const output = new Uint8Array(extLength.length + extData.length + encryptedData.length);
+            let offset = 0;
+            output.set(extLength, offset); offset += extLength.length;
+            output.set(extData, offset); offset += extData.length;
+            output.set(encryptedData, offset);
+            
+            // 创建下载链接
+            createDownloadLink(output, true);
+        }
+        
+        // RSA加密文件
+        async function encryptFileRsa() {
+            const publicKeyPem = document.getElementById('rsaPublicKey').value.trim();
+            
+            if (!publicKeyPem) {
+                throw new Error('请提供RSA公钥');
+            }
+            
+            // 获取文件扩展名
+            const fileExt = getFileExtension(selectedFile.name);
+            const extEncoder = new TextEncoder();
+            const extData = extEncoder.encode(fileExt);
+            const extLength = new Uint8Array(2);
+            extLength[0] = extData.length >> 8;
+            extLength[1] = extData.length & 0xFF;
+            
+            // 读取文件为ArrayBuffer
+            const fileData = await readFileAsArrayBuffer(selectedFile);
+            
+            // 在实际应用中，RSA通常用于加密对称密钥，而不是直接加密大文件
+            // 这里简化为直接加密小文件或分块加密
+            if (fileData.byteLength > 200) { // RSA-OAEP最多能加密的数据大小取决于密钥长度和哈希算法
+                throw new Error('文件太大，RSA不适合直接加密大文件。请使用混合加密方案。');
+            }
+            
+            // 创建包含扩展名和文件数据的ArrayBuffer
+            const combinedData = new Uint8Array(extLength.length + extData.length + fileData.byteLength);
+            combinedData.set(extLength, 0);
+            combinedData.set(extData, extLength.length);
+            combinedData.set(new Uint8Array(fileData), extLength.length + extData.length);
+            
+            // 导入公钥
+            const publicKey = await importRsaPublicKey(publicKeyPem);
+            
+            // 加密数据
+            const encryptedData = await window.crypto.subtle.encrypt(
+                { name: 'RSA-OAEP' },
+                publicKey,
+                combinedData
+            );
+            
+            // 创建下载链接
+            createDownloadLink(encryptedData, true);
+        }
+        
+        // 解密文件
+        async function decryptFile() {
+            if (!selectedFile) return;
+            
+            const algorithm = algorithmSelect.value;
+            
+            try {
+                showProgress('正在解密...', 0);
+                
+                if (algorithm === 'RSA') {
+                    await decryptFileRsa();
+                } else if (algorithm === '3DES') {
+                    await decryptFile3DES();
+                } else if (algorithm === 'XOR') {
+                    await decryptFileXor();
+                } else {
+                    await decryptFileAes();
+                }
+                
+                showProgress('解密完成!', 100);
+            } catch (error) {
+                console.error('解密错误:', error);
+                showProgress('解密失败: ' + error.message, 0);
+                alert('解密失败: ' + selectedFile.name);
+            }
+        }
+        
+        // AES解密文件
+        async function decryptFileAes() {
+            const password = passwordInput.value;
+            
+            // 读取文件为ArrayBuffer
+            const fileData = await readFileAsArrayBuffer(selectedFile);
+            
+            // 提取salt(16) + iv(16) + extLength(2) + extData + encryptedData
+            if (fileData.byteLength < 34) { // salt(16) + iv(16) + extLength(2)
+                throw new Error('文件格式无效');
+            }
+            
+            const salt = new Uint8Array(fileData, 0, 16);
+            const iv = new Uint8Array(fileData, 16, 16);
+            
+            // 读取扩展名信息
+            const extLength = new Uint8Array(fileData, 32, 2);
+            const extDataLength = (extLength[0] << 8) + extLength[1];
+            const extData = new Uint8Array(fileData, 34, extDataLength);
+            const extDecoder = new TextDecoder();
+            const fileExt = extDecoder.decode(extData);
+            
+            const encryptedData = fileData.slice(34 + extDataLength);
+            const keySize = parseInt(document.getElementById('aesKeySize').value);
+            const mode = document.getElementById('aesMode').value;
+            
+            // 从密码派生密钥
+            const keyMaterial = await getKeyMaterial(password, salt);
+            const key = await deriveKey(keyMaterial, salt, 'AES', keySize, ['decrypt']);
+            
+            // 解密数据
+            const decryptedData = await window.crypto.subtle.decrypt(
+                { 
+                    name: `AES-${mode}`,
+                    iv: iv 
+                },
+                key,
+                encryptedData
+            );
+            
+            // 创建下载链接
+            createDownloadLink(decryptedData, false, fileExt);
+        }
+        
+            // 3DES解密文件
+            async function decryptFile3DES() {
+                const password = passwordInput.value;
+                const mode = document.getElementById('desMode').value;
+                
+                // 读取文件为ArrayBuffer
+                const fileData = await readFileAsArrayBuffer(selectedFile);
+                const fileArray = new Uint8Array(fileData);
+                
+                // 提取salt(8) + iv(8) + extLength(2) + extData + encryptedData
+                const saltLength = 8;
+                const ivLength = mode === 'ECB' ? 0 : 8;
+                if (fileArray.length < saltLength + ivLength + 2) {
+                    throw new Error('文件格式无效');
+                }
+                
+                // 提取salt和iv
+                const salt = CryptoJS.lib.WordArray.create(fileArray.slice(0, saltLength));
+                const iv = mode === 'ECB' ? undefined : CryptoJS.lib.WordArray.create(fileArray.slice(saltLength, saltLength + ivLength));
+                
+                // 读取扩展名信息
+                const extOffset = saltLength + ivLength;
+                const extLength = (fileArray[extOffset] << 8) + fileArray[extOffset + 1];
+                const extData = fileArray.slice(extOffset + 2, extOffset + 2 + extLength);
+                const extDecoder = new TextDecoder();
+                const fileExt = extDecoder.decode(extData);
+                
+                // 提取加密数据
+                const encryptedData = fileArray.slice(extOffset + 2 + extLength);
+                
+                // 从密码派生密钥
+                const key = CryptoJS.PBKDF2(password, salt, {
+                    keySize: 24 / 4,
+                    iterations: 10000,
+                    hasher: CryptoJS.algo.SHA256
+                });
+                
+                // 创建CipherParams对象
+                const cipherParams = CryptoJS.lib.CipherParams.create({
+                    ciphertext: CryptoJS.lib.WordArray.create(encryptedData),
+                    salt: salt,
+                    iv: iv,
+                    algorithm: CryptoJS.algo.TripleDES,
+                    mode: mode === 'ECB' ? CryptoJS.mode.ECB : CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7,
+                    blockSize: 8
+                });
+                
+                // 执行3DES解密
+                const decrypted = CryptoJS.TripleDES.decrypt(cipherParams, key, {
+                    iv: iv,
+                    mode: mode === 'ECB' ? CryptoJS.mode.ECB : CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+                
+                // 将解密结果转换为ArrayBuffer
+                const decryptedArray = new Uint8Array(decrypted.toString(CryptoJS.enc.Latin1).split('').map(c => c.charCodeAt(0)));
+                
+                // 创建下载链接
+                createDownloadLink(decryptedArray.buffer, false, fileExt);
+            }
+            
+        // XOR解密文件
+        async function decryptFileXor() {
+            const key = document.getElementById('xorKey').value || passwordInput.value;
+            if (!key) {
+                throw new Error('请提供XOR解密密钥');
+            }
+            
+            // 读取文件为ArrayBuffer
+            const fileData = await readFileAsArrayBuffer(selectedFile);
+            const fileArray = new Uint8Array(fileData);
+            
+            if (fileArray.length < 2) {
+                throw new Error('文件格式无效');
+            }
+            
+            // 读取扩展名信息
+            const extLength = (fileArray[0] << 8) + fileArray[1];
+            if (fileArray.length < 2 + extLength) {
+                throw new Error('文件格式无效');
+            }
+            
+            const extData = fileArray.slice(2, 2 + extLength);
+            const extDecoder = new TextDecoder();
+            const fileExt = extDecoder.decode(extData);
+            
+            const encryptedData = fileArray.slice(2 + extLength);
+            
+            // 准备密钥字节数组
+            const keyEncoder = new TextEncoder();
+            const keyBytes = keyEncoder.encode(key);
+            if (keyBytes.length === 0) {
+                throw new Error('XOR密钥不能为空');
+            }
+            
+            // 执行XOR解密 (XOR加密和解密是相同的操作)
+            const decryptedData = new Uint8Array(encryptedData.length);
+            for (let i = 0; i < encryptedData.length; i++) {
+                decryptedData[i] = encryptedData[i] ^ keyBytes[i % keyBytes.length];
+            }
+            
+            // 创建下载链接
+            createDownloadLink(decryptedData.buffer, false, fileExt);
+        }
+        
+        // RSA解密文件
+        async function decryptFileRsa() {
+            const privateKeyPem = document.getElementById('rsaPrivateKey').value.trim();
+            
+            if (!privateKeyPem) {
+                throw new Error('请提供RSA私钥');
+            }
+            
+            // 读取文件为ArrayBuffer
+            const fileData = await readFileAsArrayBuffer(selectedFile);
+            
+            // 导入私钥
+            const privateKey = await importRsaPrivateKey(privateKeyPem);
+            
+            // 解密数据
+            const decryptedData = await window.crypto.subtle.decrypt(
+                { name: 'RSA-OAEP' },
+                privateKey,
+                fileData
+            );
+            
+            // 提取扩展名信息
+            const decryptedArray = new Uint8Array(decryptedData);
+            const extLength = (decryptedArray[0] << 8) + decryptedArray[1];
+            const extData = decryptedArray.slice(2, 2 + extLength);
+            const extDecoder = new TextDecoder();
+            const fileExt = extDecoder.decode(extData);
+            
+            // 提取实际文件数据
+            const actualData = decryptedData.slice(2 + extLength);
+            
+            // 创建下载链接
+            createDownloadLink(actualData, false, fileExt);
+        }
+        
+        // 加密文本
+        async function encryptText() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                alert('请输入要加密的文本');
+                return;
+            }
+            
+            const algorithm = algorithmSelect.value;
+            
+            try {
+                if (algorithm === 'RSA') {
+                    await encryptTextRsa(text);
+                } else if (algorithm === '3DES') {
+                    await encryptText3DES(text);
+                } else if (algorithm === 'XOR') {
+                    await encryptTextXor(text);
+                } else if (algorithm === 'Caesar') {
+                    await encryptTextCaesar(text);
+                } else {
+                    await encryptTextAes(text);
+                } 
+            } catch (error) {
+                console.error('文本加密错误:', error);
+                document.getElementById('textOutput').value = '加密失败: ' + error.message;
+            }
+        }
+        
+        // AES加密文本
+        async function encryptTextAes(text) {
+            const password = passwordInput.value;
+            const salt = window.crypto.getRandomValues(new Uint8Array(16));
+            const iv = window.crypto.getRandomValues(new Uint8Array(16));
+            const keySize = parseInt(document.getElementById('aesKeySize').value);
+            const mode = document.getElementById('aesMode').value;
+            
+            // 从密码派生密钥
+            const keyMaterial = await getKeyMaterial(password);
+            const key = await deriveKey(keyMaterial, salt, 'AES', keySize, ['encrypt']);
+            
+            // 将文本转换为ArrayBuffer
+            const encoder = new TextEncoder();
+            const textData = encoder.encode(text);
+            
+            // 加密数据
+            const encryptedData = await window.crypto.subtle.encrypt(
+                { 
+                    name: `AES-${mode}`,
+                    iv: iv 
+                },
+                key,
+                textData
+            );
+            
+            // 将加密结果转换为Base64字符串 (格式: salt + iv + encryptedData)
+            const output = new Uint8Array(salt.length + iv.length + encryptedData.byteLength);
+            output.set(salt, 0);
+            output.set(iv, salt.length);
+            output.set(new Uint8Array(encryptedData), salt.length + iv.length);
+            
+            const base64String = arrayBufferToBase64(output);
+            document.getElementById('textOutput').value = base64String;
+        }
+        
+            // 3DES加密文本
+            async function encryptText3DES(text) {
+                const password = passwordInput.value;
+                const salt = CryptoJS.lib.WordArray.random(8);
+                const iv = CryptoJS.lib.WordArray.random(8);
+                const mode = document.getElementById('desMode').value;
+                
+                // 从密码派生密钥
+                const key = CryptoJS.PBKDF2(password, salt, {
+                    keySize: 24 / 4,
+                    iterations: 10000,
+                    hasher: CryptoJS.algo.SHA256
+                });
+                
+                // 加密配置
+                const cfg = {
+                    iv: mode === 'ECB' ? undefined : iv,
+                    mode: mode === 'ECB' ? CryptoJS.mode.ECB : CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                };
+                
+                // 执行3DES加密
+                const encrypted = CryptoJS.TripleDES.encrypt(text, key, cfg);
+                
+                // 准备输出数据 (格式: salt + iv + encryptedData)
+                const saltArray = new Uint8Array(salt.toString(CryptoJS.enc.Hex).match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const ivArray = mode === 'ECB' ? [] : new Uint8Array(iv.toString(CryptoJS.enc.Hex).match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                
+                // 将加密数据转换为Base64字符串
+                const encryptedBase64 = encrypted.toString();
+                const encryptedArray = new Uint8Array(base64ToArrayBuffer(encryptedBase64));
+                
+                const output = new Uint8Array([
+                    ...saltArray,
+                    ...ivArray,
+                    ...encryptedArray
+                ]);
+                
+                // 转换为Base64字符串
+                const base64String = arrayBufferToBase64(output);
+                document.getElementById('textOutput').value = base64String;
+            }
+
+        // XOR加密文本
+        async function encryptTextXor(text) {
+            const key = document.getElementById('xorKey').value || passwordInput.value;
+            if (!key) {
+                throw new Error('请提供XOR加密密钥');
+            }
+            
+            // 将文本转换为字节数组
+            const encoder = new TextEncoder();
+            const textData = encoder.encode(text);
+            
+            // 准备密钥字节数组
+            const keyEncoder = new TextEncoder();
+            const keyBytes = keyEncoder.encode(key);
+            if (keyBytes.length === 0) {
+                throw new Error('XOR密钥不能为空');
+            }
+            
+            // 执行XOR加密
+            const encryptedData = new Uint8Array(textData.length);
+            for (let i = 0; i < textData.length; i++) {
+                encryptedData[i] = textData[i] ^ keyBytes[i % keyBytes.length];
+            }
+            
+            // 将加密结果转换为Base64字符串
+            const base64String = arrayBufferToBase64(encryptedData);
+            document.getElementById('textOutput').value = base64String;
+        }
+        
+        // RSA加密文本
+        async function encryptTextRsa(text) {
+            const publicKeyPem = document.getElementById('rsaPublicKey').value.trim();
+            
+            if (!publicKeyPem) {
+                throw new Error('请提供RSA公钥');
+            }
+            
+            
+            // 将文本转换为ArrayBuffer
+            const encoder = new TextEncoder();
+            const textData = encoder.encode(text);
+            
+            // 检查数据大小是否适合RSA加密
+            if (textData.byteLength > 200) { // RSA-OAEP最多能加密的数据大小取决于密钥长度和哈希算法
+                throw new Error('文本太长，RSA不适合直接加密大文本。请使用混合加密方案。');
+            }
+            
+            // 导入公钥
+            const publicKey = await importRsaPublicKey(publicKeyPem);
+            
+            // 加密数据
+            const encryptedData = await window.crypto.subtle.encrypt(
+                { name: 'RSA-OAEP' },
+                publicKey,
+                textData
+            );
+            
+            // 将加密结果转换为Base64字符串
+            const base64String = arrayBufferToBase64(encryptedData);
+            document.getElementById('textOutput').value = base64String;
+        }
+        
+        // 解密文本
+        async function decryptText() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                alert('请输入要解密的文本');
+                return;
+            }
+            
+            const algorithm = algorithmSelect.value;
+            
+            try {
+                if (algorithm === 'RSA') {
+                    await decryptTextRsa(text);
+                } else if (algorithm === '3DES') {
+                    await decryptText3DES(text);
+                } else if (algorithm === 'XOR') {
+                    await decryptTextXor(text);
+                } else if (algorithm === 'Caesar') {
+                    await decryptTextCaesar(text);
+                } else {
+                    await decryptTextAes(text);
+                }
+            } catch (error) {
+                console.error('文本解密错误:', error);
+                document.getElementById('textOutput').value = '解密失败: ' + error.message;
+            }
+        }
+        
+        // AES解密文本
+        async function decryptTextAes(text) {
+            const password = passwordInput.value;
+            
+            // 将Base64字符串转换为ArrayBuffer
+            const encryptedData = base64ToArrayBuffer(text);
+            
+            // 提取salt和iv (加密时我们添加了salt + iv + encryptedData)
+            if (encryptedData.byteLength < 32) { // salt(16) + iv(16)
+                throw new Error('加密文本格式无效');
+            }
+            
+            const salt = new Uint8Array(encryptedData, 0, 16);
+            const iv = new Uint8Array(encryptedData, 16, 16);
+            const dataToDecrypt = encryptedData.slice(32);
+            const keySize = parseInt(document.getElementById('aesKeySize').value);
+            const mode = document.getElementById('aesMode').value;
+            
+            // 从密码派生密钥
+            const keyMaterial = await getKeyMaterial(password, salt);
+            const key = await deriveKey(keyMaterial, salt, 'AES', keySize, ['decrypt']);
+            
+            // 解密数据
+            const decryptedData = await window.crypto.subtle.decrypt(
+                { 
+                    name: `AES-${mode}`,
+                    iv: iv 
+                },
+                key,
+                dataToDecrypt
+            );
+            
+            // 将解密结果转换为文本
+            const decoder = new TextDecoder();
+            const decryptedText = decoder.decode(decryptedData);
+            document.getElementById('textOutput').value = decryptedText;
+        }
+        
+            // 3DES解密文本
+            async function decryptText3DES(text) {
+                const password = passwordInput.value;
+                const mode = document.getElementById('desMode').value;
+                
+                try {
+                    // 将Base64字符串转换为ArrayBuffer
+                    const encryptedData = base64ToArrayBuffer(text);
+                    const encryptedArray = new Uint8Array(encryptedData);
+                    
+                    // 提取salt和iv
+                    const saltLength = 8;
+                    const ivLength = mode === 'ECB' ? 0 : 8;
+                    if (encryptedArray.length < saltLength + ivLength) {
+                        throw new Error('加密文本格式无效');
+                    }
+                    
+                    // 提取salt和iv
+                    const salt = CryptoJS.lib.WordArray.create(encryptedArray.slice(0, saltLength));
+                    const iv = mode === 'ECB' ? undefined : CryptoJS.lib.WordArray.create(encryptedArray.slice(saltLength, saltLength + ivLength));
+                    
+                    // 提取加密数据
+                    const ciphertext = encryptedArray.slice(saltLength + ivLength);
+                    
+                    // 从密码派生密钥
+                    const key = CryptoJS.PBKDF2(password, salt, {
+                        keySize: 24 / 4,
+                        iterations: 10000,
+                        hasher: CryptoJS.algo.SHA256
+                    });
+                    
+                    // 创建CipherParams对象
+                    const cipherParams = CryptoJS.lib.CipherParams.create({
+                        ciphertext: CryptoJS.lib.WordArray.create(ciphertext),
+                        salt: salt,
+                        iv: iv,
+                        algorithm: CryptoJS.algo.TripleDES,
+                        mode: mode === 'ECB' ? CryptoJS.mode.ECB : CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7,
+                        blockSize: 8
+                    });
+                    
+                    // 执行3DES解密
+                    const decrypted = CryptoJS.TripleDES.decrypt(cipherParams, key, {
+                        iv: iv,
+                        mode: mode === 'ECB' ? CryptoJS.mode.ECB : CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                    
+                    // 将解密结果输出
+                    const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+                    if (!decryptedText) {
+                        throw new Error('解密失败，可能是密码错误');
+                    }
+                    
+                    document.getElementById('textOutput').value = decryptedText;
+                } catch (error) {
+                    console.error('3DES文本解密错误:', error);
+                    document.getElementById('textOutput').value = '解密失败: ' + error.message;
+                }
+            }
+        
+        // XOR解密文本
+        async function decryptTextXor(text) {
+            const key = document.getElementById('xorKey').value || passwordInput.value;
+            if (!key) {
+                throw new Error('请提供XOR解密密钥');
+            }
+            
+            // 将Base64字符串转换为ArrayBuffer
+            const encryptedData = base64ToArrayBuffer(text);
+            const encryptedArray = new Uint8Array(encryptedData);
+            
+            // 准备密钥字节数组
+            const keyEncoder = new TextEncoder();
+            const keyBytes = keyEncoder.encode(key);
+            if (keyBytes.length === 0) {
+                throw new Error('XOR密钥不能为空');
+            }
+            
+            // 执行XOR解密 (XOR加密和解密是相同的操作)
+            const decryptedData = new Uint8Array(encryptedArray.length);
+            for (let i = 0; i < encryptedArray.length; i++) {
+                decryptedData[i] = encryptedArray[i] ^ keyBytes[i % keyBytes.length];
+            }
+            
+            // 将解密结果转换为文本
+            const decoder = new TextDecoder();
+            const decryptedText = decoder.decode(decryptedData);
+            document.getElementById('textOutput').value = decryptedText;
+        }
+ 
+       // 恺撒加密文本
+       async function encryptTextCaesar(text) {
+              const shift = parseInt(document.getElementById('caesarShift').value);
+              let result = '';
+              for (let i = 0; i < text.length; i++) {
+                  let char = text[i];
+                  if (char.match(/[a-z]/i)) {
+                      const code = text.charCodeAt(i);
+                      const base = code <= 90 ? 65 : 97;
+                      char = String.fromCharCode(((code - base + shift) % 26) + base);
+                  }
+                  
+            result += char
+            }
+              document.getElementById('textOutput').value = result;
+          }
+
+       // 恺撒解密文本
+       async function decryptTextCaesar(text) {
+              const shift = parseInt(document.getElementById('caesarShift').value);
+              let result = '';
+              for (let i = 0; i < text.length; i++) {
+                  let char = text[i];
+                  if (char.match(/[a-z]/i)) {
+                      const code = text.charCodeAt(i);
+                      const base = code <= 90 ? 65 : 97;
+                      char = String.fromCharCode(((code - base - shift + 26) % 26) + base);
+                  }
+                  result += char;
+              }
+              document.getElementById('textOutput').value = result;
+          }    
+             
+        // RSA解密文本
+        async function decryptTextRsa(text) {
+            const privateKeyPem = document.getElementById('rsaPrivateKey').value.trim();
+            
+            if (!privateKeyPem) {
+                throw new Error('请提供RSA私钥');
+            }
+            
+            // 将Base64字符串转换为ArrayBuffer
+            const encryptedData = base64ToArrayBuffer(text);
+            
+            // 导入私钥
+            const privateKey = await importRsaPrivateKey(privateKeyPem);
+            
+            // 解密数据
+            const decryptedData = await window.crypto.subtle.decrypt(
+                { name: 'RSA-OAEP' },
+                privateKey,
+                encryptedData
+            );
+            
+            // 将解密结果转换为文本
+            const decoder = new TextDecoder();
+            const decryptedText = decoder.decode(decryptedData);
+            document.getElementById('textOutput').value = decryptedText;
+        }
+        
+        // 清空文本
+        function clearText() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('textOutput').value = '';
+        }
+        
+        // 生成RSA密钥对
+        async function generateRsaKeyPair() {
+            try {
+                const keySize = parseInt(document.getElementById('rsaKeySize').value);
+                
+                // 生成RSA密钥对
+                rsaKeyPair = await window.crypto.subtle.generateKey(
+                    {
+                        name: "RSA-OAEP",
+                        modulusLength: keySize,
+                        publicExponent: new Uint8Array([0x01, 0x00, 0x01]), // 65537
+                        hash: { name: "SHA-256" }
+                    },
+                    true,
+                    ["encrypt", "decrypt"]
+                );
+                
+                // 导出公钥
+                const publicKey = await window.crypto.subtle.exportKey(
+                    "spki",
+                    rsaKeyPair.publicKey
+                );
+                
+                // 导出私钥
+                const privateKey = await window.crypto.subtle.exportKey(
+                    "pkcs8",
+                    rsaKeyPair.privateKey
+                );
+                
+                // 转换为PEM格式
+                const publicKeyPem = arrayBufferToPem(publicKey, 'PUBLIC KEY');
+                const privateKeyPem = arrayBufferToPem(privateKey, 'PRIVATE KEY');
+                
+                // 显示密钥
+                document.getElementById('rsaPublicKey').value = publicKeyPem;
+                document.getElementById('rsaPrivateKey').value = privateKeyPem;
+                
+                alert('RSA密钥对已生成');
+            } catch (error) {
+                console.error('生成RSA密钥对错误:', error);
+                alert('生成RSA密钥对失败: ' + error.message);
+            }
+        }
+        
+        // 导入RSA公钥
+        async function importRsaPublicKey(pem) {
+            try {
+                // 从PEM格式提取Base64部分
+                const base64String = pem
+                    .replace('-----BEGIN PUBLIC KEY-----', '')
+                    .replace('-----END PUBLIC KEY-----', '')
+                    .replace(/\s+/g, '');
+                
+                // 转换为ArrayBuffer
+                const binaryDer = base64ToArrayBuffer(base64String);
+                
+                // 导入公钥
+                return await window.crypto.subtle.importKey(
+                    "spki",
+                    binaryDer,
+                    {
+                        name: "RSA-OAEP",
+                        hash: { name: "SHA-256" }
+                    },
+                    true,
+                    ["encrypt"]
+                );
+            } catch (error) {
+                console.error('导入RSA公钥错误:', error);
+                throw new Error('无效的RSA公钥');
+            }
+        }
+        
+        // 导入RSA私钥
+        async function importRsaPrivateKey(pem) {
+            try {
+                // 从PEM格式提取Base64部分
+                const base64String = pem
+                    .replace('-----BEGIN PRIVATE KEY-----', '')
+                    .replace('-----END PRIVATE KEY-----', '')
+                    .replace(/\s+/g, '');
+                
+                // 转换为ArrayBuffer
+                const binaryDer = base64ToArrayBuffer(base64String);
+                
+                // 导入私钥
+                return await window.crypto.subtle.importKey(
+                    "pkcs8",
+                    binaryDer,
+                    {
+                        name: "RSA-OAEP",
+                        hash: { name: "SHA-256" }
+                    },
+                    true,
+                    ["decrypt"]
+                );
+            } catch (error) {
+                console.error('导入RSA私钥错误:', error);
+                throw new Error('无效的RSA私钥');
+            }
+        }
+        
+        // 从密码获取密钥材料
+        async function getKeyMaterial(password, salt) {
+            if (!salt) {
+                salt = new Uint8Array(16); // 默认空salt
+            }
+            
+            const encoder = new TextEncoder();
+            const passwordBuffer = encoder.encode(password);
+            
+            return await window.crypto.subtle.importKey(
+                "raw",
+                passwordBuffer,
+                { name: "PBKDF2" },
+                false,
+                ["deriveBits", "deriveKey"]
+            );
+        }
+        
+        // 派生密钥
+        async function deriveKey(keyMaterial, salt, algorithm, length, keyUsages) {
+            // 使用PBKDF2派生密钥
+            return await window.crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: salt,
+                    iterations: 100000,
+                    hash: "SHA-256"
+                },
+                keyMaterial,
+                {
+                    name: algorithm === 'AES' ? `AES-${document.getElementById('aesMode').value}` : 
+                          algorithm === '3DES' ? '3DES' : algorithm,
+                    length: length
+                },
+                false,
+                keyUsages
+            );
+        }
+        
+        // 读取文件为ArrayBuffer
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                
+                reader.onerror = function(e) {
+                    reject(new Error('文件读取失败'));
+                };
+                
+                reader.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        showProgress('文件处理中...', percent);
+                    }
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // 创建下载链接
+        function createDownloadLink(data, isEncrypted, originalExt = '') {
+            let outputFileName = outputFileNameInput.value || 'output';
+            
+            if (isEncrypted) {
+                outputFileName += '.KazaneCrypto';
+            } else if (originalExt) {
+                // 如果有原始扩展名，则使用它
+                outputFileName += originalExt ? `.${originalExt}` : '';
+            } else if (selectedFile.name.endsWith('.KazaneCrypto')) {
+                // 尝试从加密文件名中移除.enc扩展名
+                outputFileName = selectedFile.name.slice(0, -4);
+            }
+            
+            const blob = new Blob([data], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            
+            downloadContainer.innerHTML = `
+                <a href="${url}" download="${outputFileName}" class="btn">下载 ${isEncrypted ? '加密' : '解密'}文件</a>
+                <p><small>文件名: ${outputFileName} (${formatFileSize(blob.size)})</small></p>
+            `;
+        }
+        
+        // 获取文件扩展名
+        function getFileExtension(filename) {
+            const match = filename.match(/\.([^.]+)$/);
+            return match ? match[1] : '';
+        }
+        
+        // 显示进度
+        function showProgress(message, percent) {
+            progressContainer.style.display = 'block';
+            statusText.textContent = message;
+            progressBar.style.width = percent + '%';
+            
+            if (percent === 100) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 2000);
+            }
+        }
+        
+        // 验证输入
+        function validateInputs() {
+            if (!selectedFile) {
+                alert('请选择文件');
+                return false;
+            }
+            
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            if (algorithmSelect.value === 'Caesar') {
+                alert('恺撒算法不适合文件加解密，请选择其他算法。');
+                return false;
+            }                
+            if (password !== confirmPassword && algorithmSelect.value !== 'XOR') {
+                alert('两次输入的密码不一致');
+                return false;
+            }
+            
+            if (!password && algorithmSelect.value !== 'RSA' && algorithmSelect.value !== 'XOR') {
+                alert('请输入密码');
+                return false;
+            }
+            
+            if (algorithmSelect.value === 'XOR' && !password && !document.getElementById('xorKey').value) {
+                alert('请输入XOR密钥或密码');
+                return false;
+            }
+        
+            if (algorithmSelect.value === 'RSA') {
+                const operation = encryptBtn.disabled ? '解密' : '加密';
+                const keyField = encryptBtn.disabled ? '私钥' : '公钥';
+                const keyValue = encryptBtn.disabled 
+                    ? document.getElementById('rsaPrivateKey').value.trim()
+                    : document.getElementById('rsaPublicKey').value.trim();
+                
+                if (!keyValue) {
+                    alert(`RSA ${operation}需要${keyField}`);
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // 更新算法选项
+        function updateAlgorithmOptions() {
+            // 隐藏所有算法选项
+            document.querySelectorAll('.algorithm-options').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // 显示当前选择的算法选项
+            const algorithm = algorithmSelect.value;
+            if (algorithm === 'AES') {
+                document.getElementById('aesOptions').style.display = 'block';
+                document.getElementById('password').parentElement.style.display = 'block';
+                document.getElementById('confirmPassword').parentElement.style.display = 'block';
+                document.getElementById('xorKey').parentElement.parentElement.style.display = 'none';
+            } else if (algorithm === 'RSA') {
+                document.getElementById('rsaOptions').style.display = 'block';
+                document.getElementById('password').parentElement.style.display = 'block';
+                document.getElementById('confirmPassword').parentElement.style.display = 'none';
+                document.getElementById('xorKey').parentElement.parentElement.style.display = 'none';
+            } else if (algorithm === '3DES') {
+                document.getElementById('desOptions').style.display = 'block';
+                document.getElementById('password').parentElement.style.display = 'block';
+                document.getElementById('confirmPassword').parentElement.style.display = 'block';
+                document.getElementById('xorKey').parentElement.parentElement.style.display = 'none';
+            } else if (algorithm === 'XOR') {
+                document.getElementById('xorOptions').style.display = 'block';
+                document.getElementById('password').parentElement.style.display = 'block';
+                document.getElementById('confirmPassword').parentElement.style.display = 'none';
+            } else if (algorithm === 'Caesar') {
+                document.getElementById('caesarOptions').style.display = 'block';
+                document.getElementById('password').parentElement.style.display = 'none';
+                document.getElementById('confirmPassword').parentElement.style.display = 'none';
+                document.getElementById('xorKey').parentElement.parentElement.style.display = 'none';
+                document.getElementById('showPassword').parentElement.parentElement.style.display = 'none';
+            }
+            
+            // 根据算法更新密码字段要求
+            if (algorithm === 'RSA') {
+                document.getElementById('password').placeholder = '可选密码(用于保护私钥)';
+            } else if (algorithm === 'XOR') {
+                document.getElementById('password').placeholder = '输入XOR密钥(或使用专用密钥字段)';
+            } else {
+                document.getElementById('password').placeholder = '输入加密/解密密码';
+            }
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            const settings = {
+                algorithm: algorithmSelect.value,
+                password: passwordInput.value,
+                outputFileName: outputFileNameInput.value,
+                aesKeySize: document.getElementById('aesKeySize').value,
+                aesMode: document.getElementById('aesMode').value,
+                rsaKeySize: document.getElementById('rsaKeySize').value,
+                rsaPublicKey: document.getElementById('rsaPublicKey').value,
+                rsaPrivateKey: document.getElementById('rsaPrivateKey').value,
+                desMode: document.getElementById('desMode').value,
+                xorKey: document.getElementById('xorKey').value,
+                caesarShift: document.getElementById('caesarShift').value,
+            };
+            
+            localStorage.setItem('cryptoAppSettings', JSON.stringify(settings));
+            alert('设置已保存');
+        }
+        
+        // 重置设置
+        function resetSettings() {
+            if (confirm('确定要重置所有设置吗?')) {
+                localStorage.removeItem('cryptoAppSettings');
+                
+                algorithmSelect.value = 'AES';
+                passwordInput.value = '';
+                confirmPasswordInput.value = '';
+                outputFileNameInput.value = '';
+                document.getElementById('aesKeySize').value = '256';
+                document.getElementById('aesMode').value = 'CBC';
+                document.getElementById('rsaKeySize').value = '2048';
+                document.getElementById('rsaPublicKey').value = '';
+                document.getElementById('rsaPrivateKey').value = '';
+                document.getElementById('desMode').value = 'CBC';
+                document.getElementById('xorKey').value = '';
+                showPasswordCheckbox.checked = false;
+                
+                updateAlgorithmOptions();
+            }
+        }
+        
+        // 加载设置
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('cryptoAppSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                
+                algorithmSelect.value = settings.algorithm || 'AES';
+                passwordInput.value = settings.password || '';
+                confirmPasswordInput.value = settings.password || '';
+                outputFileNameInput.value = settings.outputFileName || '';
+                
+                if (settings.aesKeySize) document.getElementById('aesKeySize').value = settings.aesKeySize;
+                if (settings.aesMode) document.getElementById('aesMode').value = settings.aesMode;
+                if (settings.rsaKeySize) document.getElementById('rsaKeySize').value = settings.rsaKeySize;
+                if (settings.rsaPublicKey) document.getElementById('rsaPublicKey').value = settings.rsaPublicKey;
+                if (settings.rsaPrivateKey) document.getElementById('rsaPrivateKey').value = settings.rsaPrivateKey;
+                if (settings.desMode) document.getElementById('desMode').value = settings.desMode;
+                if (settings.xorKey) document.getElementById('xorKey').value = settings.xorKey;
+                if (settings.caesarShift) document.getElementById('caesarShift').value = settings.caesarShift;
+                updateAlgorithmOptions();
+            }
+        }
+        
+        // 辅助函数: 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 辅助函数: ArrayBuffer转Base64
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            
+            return window.btoa(binary);
+        }
+        
+        // 辅助函数: Base64转ArrayBuffer
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            return bytes.buffer;
+        }
+        
+        // 辅助函数: ArrayBuffer转PEM格式
+        function arrayBufferToPem(buffer, label) {
+            const base64 = arrayBufferToBase64(buffer);
+            return `-----BEGIN ${label}-----\n${insertNewLines(base64)}\n-----END ${label}-----\n`;
+        }
+        
+        // 辅助函数: 在Base64字符串中插入换行符
+        function insertNewLines(str) {
+            const chunkSize = 64;
+            let result = '';
+            
+            for (let i = 0; i < str.length; i += chunkSize) {
+                result += str.substr(i, chunkSize) + '\n';
+            }
+            
+            return result.trim();
+        }
+        
+        // 辅助函数: 选项卡切换
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            const tabButtons = document.getElementsByClassName('tab-btn');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+        
+        // 初始化加载设置
+        loadSettings();
+    </script>
+</body>
+</html>
